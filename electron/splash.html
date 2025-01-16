@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>J5 Pharmacy PMS</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(334deg,#213a57,#086477,#0ad1c8,#80ed99);
+            background-size: 240% 240%;
+            animation: gradient-animation 12s ease infinite;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            position: relative;
+            padding: 20px;
+        }
+        .logo {
+            width: 125px;
+            height: 125px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        .title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+            animation-delay: 0.5s;
+        }
+        .version {
+            font-size: 14px;
+            color: #00ff9d;
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+            animation-delay: 0.7s;
+            margin-bottom: 20px;
+        }
+        .loading {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+            animation-delay: 0.9s;
+            margin: 20px 0;
+        }
+        .loading-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d, #00ccff);
+            border-radius: 2px;
+            animation: loading 2s linear infinite;
+        }
+        .credits {
+            position: absolute;
+            bottom: -40px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+            animation-delay: 1.1s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes loading {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="icons/icon.ico" alt="Logo" class="logo">
+        <div class="title">J5 Pharmacy Management System</div>
+        <div class="version">Version <span id="version">1.0.10</span></div>
+        <div class="loading">
+            <div class="loading-bar"></div>
+        </div>
+        <div class="credits">© 2025 | Zen Garden</div>
+    </div>
+    <script>
+        const { version } = require('../package.json');
+        document.addEventListener('DOMContentLoaded', () => {
+            const versionElement = document.getElementById('version');
+            if (versionElement) {
+                versionElement.textContent = version;
+            }
+        });
+    </script>
+</body>
+</html> 

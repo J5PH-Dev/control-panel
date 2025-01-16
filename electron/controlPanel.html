@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PMS Backend Support</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Dark mode styles */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --modal-bg: #ffffff;
+            --modal-text: #000000;
+            --btn-start: #4CAF50;
+            --btn-stop: #f44336;
+            --btn-restart: #FF9800;
+            --btn-update: #2196F3;
+            --btn-browser: #607D8B;
+            --btn-report: #E91E63;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2a2a2a;
+            --border-color: #404040;
+            --modal-bg: #2a2a2a;
+            --modal-text: #ffffff;
+            --btn-start: rgba(76, 175, 80, 0.8);
+            --btn-stop: rgba(244, 67, 54, 0.8);
+            --btn-restart: rgba(255, 152, 0, 0.8);
+            --btn-update: rgba(33, 150, 243, 0.8);
+            --btn-browser: rgba(96, 125, 139, 0.8);
+            --btn-report: rgba(233, 30, 99, 0.8);
+            --input-bg: #333333;
+            --input-text: #ffffff;
+            --input-border: #404040;
+            --input-placeholder: #888888;
+            --release-notes-bg: #2a2a2a;
+            --release-notes-text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        /* Header additions */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        .title-section {
+            flex-grow: 1;
+        }
+
+        .datetime-section {
+            margin-right: 18px;
+            text-align: right;
+        }
+
+        .datetime {
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .date {
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        .time {
+            font-size: 16px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #2196F3;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+
+        .log-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            background: #1E1E1E;
+            border-radius: 8px;
+            padding: 10px;
+            height: calc(100vh - 250px);
+        }
+
+        #log {
+            flex: 1;
+            color: #00FF00;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre-wrap; /* Ensure text wraps */
+            word-wrap: break-word; /* Break long words */
+        }
+
+        .control-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .start-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .stop-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .restart-btn {
+            background-color: #FF9800;
+            color: white;
+        }
+
+        .update-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .browser-btn {
+            background-color: #607D8B;
+            color: white;
+        }
+
+        .utility-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #2c2c2c;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .utility-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .utility-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .logo-container {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-top: 20px;
+            background: linear-gradient(334deg,#213a57,#086477,#0ad1c8,#80ed99);
+            background-size: 240% 240%;
+            animation: gradient-animation 12s ease infinite;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 150px;
+            max-height: 250px;
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .logo-container img {
+            max-width: 100%;
+            height: auto;
+            width: auto;
+            max-height: 120px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .logo-text {
+            margin-top: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .network-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .network-connected {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .network-disconnected {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        .update-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--modal-bg);
+            margin: 5% auto;
+            padding: 20px;
+            width: 70%;
+            max-width: 700px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: var(--modal-text);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 20px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close:hover {
+            color: #f44336;
+        }
+
+        /* Developer Card Styles */
+        .developer-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .developer-card {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .developer-card h3 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .developer-card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Report Problem Button */
+        .report-btn {
+            background-color: #E91E63;
+            color: white;
+            margin-top: 10px;
+        }
+
+        /* Report Problem Modal Styles */
+        .report-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group select {
+            background-color: white;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .submit-report {
+            background-color: #E91E63;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .submit-report:hover {
+            background-color: #D81B60;
+        }
+
+        /* Add these styles to your existing styles */
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #2196F3;
+            transition: width 0.3s ease;
+        }
+
+        .primary-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .secondary-btn {
+            background-color: #9e9e9e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        /* Add hover effects */
+        .primary-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .secondary-btn:hover {
+            background-color: #757575;
+        }
+
+        /* Add these styles to your existing styles */
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .primary-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .secondary-btn {
+            background-color: #9e9e9e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Button colors */
+        .start-btn { background-color: var(--btn-start); }
+        .stop-btn { background-color: var(--btn-stop); }
+        .restart-btn { background-color: var(--btn-restart); }
+        .update-btn { background-color: var(--btn-update); }
+        .browser-btn { background-color: var(--btn-browser); }
+        .report-btn { background-color: var(--btn-report); }
+
+        /* The switch - the box around the slider */
+        .switch {
+          display: block;
+          --width-of-switch: 3.5em;
+          --height-of-switch: 2em;
+          /* size of sliding icon -- sun and moon */
+          --size-of-icon: 1.4em;
+          /* it is like an inline-padding of switch */
+          --slider-offset: 0.3em;
+          position: relative;
+          width: var(--width-of-switch);
+          height: var(--height-of-switch);
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        /* The slider */
+        .switch .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #f4f4f5;
+          transition: .4s;
+          border-radius: 30px;
+        }
+
+        .switch .slider:before {
+          position: absolute;
+          content: "";
+          height: var(--size-of-icon);
+          width: var(--size-of-icon);
+          border-radius: 20px;
+          left: var(--slider-offset);
+          top: 50%;
+          transform: translateY(-50%);
+          background: linear-gradient(40deg, #ff0080, #ff8c00 70%);
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #303136;
+        }
+
+        input:checked + .slider:before {
+          left: calc(100% - (var(--size-of-icon) + var(--slider-offset)));
+          background: #303136;
+          /* change second inset value for moon shape/angle */
+          box-shadow: inset -3px -2px 5px -2px #8983f7, inset -10px -4px 0 0 #a3dafb;
+        }
+
+        /* Tab Styles */
+        .tab-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Enhanced Modal Styles */
+        .modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .developer-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+            padding: 20px;
+        }
+
+        .developer-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .developer-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .developer-card .social-links {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .social-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .about-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .about-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .about-card h4 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #2196F3;
+            color: white;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        /* Log Options Styles */
+        .log-options {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .radio-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .radio-container input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .radio-label {
+            color: var(--text-color);
+        }
+
+        .file-upload-container {
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .file-upload-container:hover {
+            border-color: #2196F3;
+        }
+
+        .file-upload-container input[type="file"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .file-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Dark mode adjustments */
+        [data-theme="dark"] .file-preview {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        
+        /* Release Notes Styles */
+        #releaseNotes pre {
+            background: var(--release-notes-bg, #f5f5f5);
+            color: var(--release-notes-text, #333333);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        /* Form Input Styles */
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid var(--input-border, #ddd);
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            background-color: var(--input-bg, white);
+            color: var(--input-text, black);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .form-group select option {
+            background-color: var(--input-bg, white);
+            color: var(--input-text, black);
+        }
+
+        .form-group label {
+            color: var(--text-color);
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Placeholder Text */
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--input-placeholder);
+        }
+
+        /* File Upload Styles */
+        .file-upload-container {
+            background: var(--input-bg, #f5f5f5);
+            border: 2px dashed var(--input-border, #ddd);
+            color: var(--text-color);
+        }
+
+        .file-preview {
+            background: var(--release-notes-bg, rgba(0, 0, 0, 0.05));
+            color: var(--text-color);
+        }
+
+        /* Update Modal Styles */
+        #updateInfo {
+            color: var(--text-color);
+        }
+
+        #updateDetails p {
+            color: var(--text-color);
+        }
+
+        #updateDetails strong {
+            color: var(--text-color);
+        }
+
+        #progressText {
+            color: var(--text-color);
+        }
+
+        /* Error Message Styles */
+        .error-message {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            margin-top: 10px;
+        }
+
+        /* Radio Button Styles */
+        .radio-container {
+            color: var(--text-color);
+        }
+
+        .radio-container input[type="radio"] {
+            accent-color: #2196F3;
+        }
+
+        /* Network Status Colors */
+        .network-connected {
+            background-color: rgba(46, 125, 50, 0.1);
+            color: #4CAF50;
+        }
+
+        .network-disconnected {
+            background-color: rgba(198, 40, 40, 0.1);
+            color: #f44336;
+        }
+
+        /* Modal Header Styles */
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            color: var(--text-color);
+        }
+
+        /* Close Button */
+        .close {
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .close:hover {
+            opacity: 1;
+        }
+
+        /* Update the form-group styles */
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid var(--input-border, #ddd);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: var(--input-bg, white);
+            color: var(--input-text, black);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+        /* Add styles for file upload containers */
+        .file-upload-container {
+            background: var(--input-bg, #f5f5f5);
+            border: 2px dashed var(--input-border, #ddd);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .file-upload-container input[type="file"] {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        /* Style for file input wrapper */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            font-size: 14px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+        }
+
+        /* Preview styles */
+        .file-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .image-preview img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        /* Update textarea styles */
+        #problemDescription {
+            min-height: 120px;
+            resize: vertical;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Update modal content styles */
+        .modal-content {
+            width: 90%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-body {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Update report form styles */
+        .report-form {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Add Settings Modal */
+        #settingsModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        #settingsModal .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--modal-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        #settingsModal .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #settingsModal .modal-title {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 20px;
+        }
+
+        #settingsModal .modal-body {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        #settingsModal .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        #settingsModal .close:hover {
+            color: #f44336;
+        }
+
+        #settingsModal .settings-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 8px;
+        }
+
+        #settingsModal .settings-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        #settingsModal .settings-description {
+            margin-top: 5px;
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        #settingsModal .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        #settingsModal .primary-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #settingsModal .secondary-btn {
+            background-color: #9e9e9e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #settingsModal .primary-btn:hover {
+            background-color: #1976D2;
+        }
+
+        #settingsModal .secondary-btn:hover {
+            background-color: #757575;
+        }
+
+        #settingsModal .saveSettingsBtn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #settingsModal .saveSettingsBtn:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <div class="title-section">
+            <h1>J5 Pharmacy Management System - Backend Support</h1>
+            <p>Control panel for managing the J5 Pharmacy Management System backend server and system monitoring.</p>
+        </div>
+        <div class="datetime-section">
+            <div class="datetime">
+                <div class="date" id="current-date"></div>
+                <div class="time" id="current-time"></div>
+            </div>
+        </div>
+        <label class="switch" id="theme-toggle">
+            <input type="checkbox">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="main-content">
+        <div class="log-section">
+            <div class="utility-buttons">
+                <button id="openLogs" class="utility-btn">
+                    <i class="fas fa-folder-open"></i> Open Logs Folder
+                </button>
+                <button id="checkNetwork" class="utility-btn">
+                    <i class="fas fa-network-wired"></i> Check Network
+                </button>
+                <button id="saveSystemLogs" class="utility-btn">
+                    <i class="fas fa-save"></i> Save System Logs
+                </button>
+            </div>
+            <pre id="log"></pre>
+        </div>
+
+        <div class="control-section">
+            <div class="status-card">
+                <div id="serverStatus" class="status-text">Server is stopped</div>
+                <div id="networkStatus" class="network-status">Checking network...</div>
+                <div id="updateStatus" class="update-status"></div>
+            </div>
+
+            <div class="button-group">
+                <button id="startServer" class="start-btn">
+                    <i class="fas fa-play"></i> Start Server
+                </button>
+                <button id="stopServer" class="stop-btn">
+                    <i class="fas fa-stop"></i> Stop Server
+                </button>
+                <button id="restartServer" class="restart-btn">
+                    <i class="fas fa-sync"></i> Restart Server
+                </button>
+                <button id="checkUpdate" class="update-btn">
+                    <i class="fas fa-download"></i> Check for Updates
+                </button>
+                <button id="openBrowser" class="browser-btn">
+                    <i class="fas fa-external-link-alt"></i> Open Browser
+                </button>
+                <button id="reportProblem" class="report-btn">
+                    <i class="fas fa-bug"></i> Report Problem
+                </button>
+            </div>
+
+            <div class="logo-container">
+                <img src="icons/icon_solid.png" alt="J5 Pharmacy Logo">
+                <div class="logo-text">J5Pharmacy - Backend Support</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update the Instructions Modal content -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Instructions</h2>
+            </div>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="getting-started">Getting Started</button>
+                    <button class="tab-btn" data-tab="controls">Controls</button>
+                    <button class="tab-btn" data-tab="troubleshoot">Troubleshooting</button>
+                    <button class="tab-btn" data-tab="best-practices">Best Practices</button>
+                    <button class="tab-btn" data-tab="support">Support</button>
+                </div>
+
+                <div id="getting-started" class="tab-content active">
+                <h3>Getting Started</h3>
+                <ol>
+                    <li>Click "Start Server" to initialize the backend server</li>
+                    <li>Wait for the server status to show "Server is running"</li>
+                    <li>Click "Open Browser" to access the PMS web interface</li>
+                </ol>
+
+                    <h3>Status Indicators</h3>
+                    <ul>
+                        <li><strong>Server Status:</strong> Shows if the server is running or stopped</li>
+                        <li><strong>Network Status:</strong> Displays current internet connectivity</li>
+                        <li><strong>Update Status:</strong> Indicates if updates are available</li>
+                    </ul>
+                </div>
+
+                <div id="controls" class="tab-content">
+                <h3>Server Controls</h3>
+                <ul>
+                        <li><strong>Start Server:</strong> Initializes the backend server and database connections</li>
+                        <li><strong>Stop Server:</strong> Safely shuts down the server and closes all connections</li>
+                        <li><strong>Restart Server:</strong> Performs a complete server restart (useful for applying changes)</li>
+                        <li><strong>Check for Updates:</strong> Manually checks if a new version is available</li>
+                        <li><strong>Open Browser:</strong> Opens the PMS web interface in your default browser</li>
+                        <li><strong>Report Problem:</strong> Submit issues or bugs to the development team</li>
+                </ul>
+
+                    <h3>Utility Functions</h3>
+                    <ul>
+                        <li><strong>Open Logs Folder:</strong> Access all system logs and error reports</li>
+                        <li><strong>Check Network:</strong> Verify your internet connection status</li>
+                        <li><strong>Save System Logs:</strong> Export current session logs for troubleshooting</li>
+                </ul>
+            </div>
+
+                <div id="troubleshoot" class="tab-content">
+                    <h3>Common Issues</h3>
+                    <div class="troubleshoot-section">
+                        <h4>Server Won't Start</h4>
+                        <ol>
+                            <li>Check if another instance is already running</li>
+                            <li>Verify network ports are not in use</li>
+                            <li>Review logs for specific error messages</li>
+                        </ol>
+
+                        <h4>Connection Issues</h4>
+                        <ol>
+                            <li>Use "Check Network" to verify internet connectivity</li>
+                            <li>Ensure your firewall isn't blocking the application</li>
+                            <li>Try restarting the server</li>
+                        </ol>
+
+                        <h4>System Crashes</h4>
+                        <ol>
+                            <li>Save system logs immediately</li>
+                            <li>Note any actions that led to the crash</li>
+                            <li>Use "Report Problem" to notify developers</li>
+                        </ol>
+        </div>
+    </div>
+
+                <div id="best-practices" class="tab-content">
+                    <h3>Best Practices</h3>
+                    <ul>
+                        <li>Always use the "Stop Server" button before closing the application</li>
+                        <li>Keep the application updated to ensure security and stability</li>
+                        <li>Regularly check logs for potential issues</li>
+                        <li>Report any unusual behavior immediately</li>
+                    </ul>
+                </div>
+
+                <div id="support" class="tab-content">
+                    <h3>Getting Support</h3>
+                    <p>For technical assistance:</p>
+                    <ol>
+                        <li>Check the logs for error messages</li>
+                        <li>Use "Report Problem" to submit detailed issue reports</li>
+                        <li>Include screenshots and steps to reproduce the problem</li>
+                        <li>Contact the development team through the Developers section</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update the About Modal content -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">About PMS Backend Support</h2>
+            </div>
+            <div class="modal-body">
+                <div class="about-section">
+                    <div class="about-card">
+                        <h4>System Overview</h4>
+                <p>The Backend Support application manages and monitors the core server functionality of the J5 Pharmacy Management System.</p>
+                        <span class="version-badge">Version: <span id="app-version">Loading...</span></span>
+                    </div>
+
+                    <div class="about-card">
+                        <h4>Backend Capabilities</h4>
+                        <ul>
+                            <li>Server Management</li>
+                            <li>Database Operations</li>
+                            <li>API Services</li>
+                            <li>Real-time Updates</li>
+                            <li>Security Features</li>
+                            <li>Error Logging</li>
+                </ul>
+                    </div>
+
+                    <div class="about-card">
+                        <h4>System Requirements</h4>
+                <ul>
+                    <li>Node.js Runtime Environment</li>
+                    <li>Minimum 4GB RAM</li>
+                    <li>Windows 8 or higher</li>
+                </ul>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 20px;">© 2025 Zen Garden. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update the Developers Modal content -->
+    <div id="developersModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Zen Garden Team</h2>
+            </div>
+            <div class="modal-body">
+                <div class="developer-cards">
+                    <div class="developer-card">
+                        <img src="icons/Zen.png" alt="Kevin Llanes">
+                        <h3>Project Manager</h3>
+                        <p>Kevin Llanes</p>
+                        <p>kevsllanes@gmail.com</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                    </div>
+
+                    <div class="developer-card">
+                        <img src="icons/Zen.png" alt="Bea Alyssa Lugtu">
+                        <h3>System Analyst</h3>
+                        <p>Bea Alyssa Lugtu</p>
+                        <p>lugtubealyssa@gmail.com</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                    </div>
+
+                    <div class="developer-card">
+                        <img src="icons/Zen.png" alt="Karl Mathew Miranda">
+                        <h3>Network Administrator</h3>
+                        <p>Karl Mathew Miranda</p>
+                        <p>@gmail.com</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                    </div>
+
+                    <div class="developer-card">
+                        <img src="icons/Zen.png" alt="James Ivan Camique">
+                        <h3>Database Administrator</h3>
+                        <p>James Ivan Camique</p>
+                        <p>@gmail.com</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                    </div>
+
+                    <div class="developer-card">
+                        <img src="icons/Zen.png" alt="Joshua Lonoza">
+                        <h3>Business Analyst</h3>
+                        <p>Joshua Lonoza</p>
+                        <p>@gmail.com</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update the Report Problem Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Report a Problem</h2>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm" class="report-form">
+                    <div class="form-group">
+                        <label for="problemCategory">Problem Category</label>
+                        <select id="problemCategory" required>
+                            <option value="">Select a category</option>
+                            <option value="server">Server Issues</option>
+                            <option value="database">Database Connection</option>
+                            <option value="performance">Performance Issues</option>
+                            <option value="ui">User Interface Issues</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="problemTitle">Brief Description</label>
+                        <input type="text" id="problemTitle" placeholder="Enter a brief title for the issue" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="problemDescription">Detailed Description</label>
+                        <textarea id="problemDescription" placeholder="Please describe what happened and steps to reproduce the issue" required></textarea>
+                    </div>
+
+                    <!-- Add Log Options -->
+                    <div class="form-group">
+                        <label>System Logs</label>
+                        <div class="log-options">
+                            <label class="radio-container">
+                                <input type="radio" name="logOption" value="current" checked>
+                                <span class="radio-label">Use Current Logs</span>
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="logOption" value="upload">
+                                <span class="radio-label">Upload Log File</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Log File Upload (initially hidden) -->
+                        <div id="logFileUpload" class="file-upload-container" style="display: none;">
+                            <input type="file" id="logFile" accept=".log,.txt">
+                            <div id="logFilePreview" class="file-preview"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Screenshots (optional)</label>
+                        <div class="file-upload-container">
+                        <input type="file" id="imageAttachment" accept="image/*" multiple>
+                        <div id="imagePreview" class="image-preview"></div>
+                    </div>
+                    </div>
+
+                    <button type="submit" class="submit-report">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </form>
+            </div>
+    </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Software Update</h2>
+            </div>
+            <div class="modal-body">
+                <div id="updateInfo">
+                    <h3 id="updateTitle"></h3>
+                    <p id="updateDescription"></p>
+                    <div id="updateDetails">
+                        <p><strong>Release Date:</strong> <span id="releaseDate"></span></p>
+                        <p><strong>Version:</strong> <span id="updateVersion"></span></p>
+                        <div id="releaseNotes" style="margin-top: 15px;">
+                            <h4 style="color: var(--text-color);">Release Notes:</h4>
+                            <pre></pre>
+                        </div>
+                    </div>
+                </div>
+                <div id="updateProgress" style="display: none;">
+                    <div class="progress-bar-container" style="margin: 20px 0;">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <p id="progressText" style="text-align: center;">Downloading: 0%</p>
+                </div>
+                <div id="updateError" class="error-message" style="display: none;"></div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button id="postponeUpdate" class="secondary-btn">Postpone</button>
+                <button id="downloadUpdate" class="primary-btn">Download & Install</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Settings</h2>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="settings-label">
+                        <input type="checkbox" id="minimizeToTray"> 
+                        Minimize to System Tray
+                    </label>
+                    <p class="settings-description">
+                        When enabled, the application will minimize to the system tray instead of the taskbar
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">
+                        <input type="checkbox" id="minimizeToTrayOnOpenBrowser"> 
+                        Minimize to System Tray when opening browser
+                    </label>
+                    <p class="settings-description">
+                        When enabled, the application will be minimized to the system tray whenever the "Open Browser" button is clicked.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettings" class="primary-btn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const log = document.getElementById('log');
+        const serverStatus = document.getElementById('serverStatus');
+        const networkStatus = document.getElementById('networkStatus');
+        const updateStatus = document.getElementById('updateStatus');
+        const startServerBtn = document.getElementById('startServer');
+        const stopServerBtn = document.getElementById('stopServer');
+        const restartServerBtn = document.getElementById('restartServer');
+        const openBrowserBtn = document.getElementById('openBrowser');
+
+        // Initially disable stop, restart, and browser buttons
+        stopServerBtn.disabled = true;
+        restartServerBtn.disabled = true;
+        openBrowserBtn.disabled = true;
+
+        // Add disabled button styles
+        const styleSheet = document.styleSheets[1]; // Get the main stylesheet
+        styleSheet.insertRule(`
+            button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                filter: grayscale(100%);
+            }
+        `, styleSheet.cssRules.length);
+
+        function appendLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Server controls
+        document.getElementById('startServer').addEventListener('click', () => {
+            appendLog('Starting server...');
+            ipcRenderer.send('server:start');
+        });
+
+        stopServerBtn.addEventListener('click', () => {
+            appendLog('Stopping server...');
+            ipcRenderer.send('server:stop');
+        });
+
+        restartServerBtn.addEventListener('click', () => {
+            appendLog('Restarting server...');
+            ipcRenderer.send('server:restart');
+        });
+
+        document.getElementById('checkUpdate').addEventListener('click', () => {
+            appendLog('Checking for updates...');
+            ipcRenderer.send('check:update');
+        });
+
+        document.getElementById('openBrowser').addEventListener('click', () => {
+            if (!serverRunning) {
+                appendLog('Cannot open browser: Server is not running');
+                return;
+            }
+            appendLog('Opening browser...');
+            ipcRenderer.send('open:browser');
+        });
+
+        document.getElementById('openLogs').addEventListener('click', () => {
+            appendLog('Opening logs folder...');
+            ipcRenderer.send('open:logs');
+        });
+
+        document.getElementById('checkNetwork').addEventListener('click', () => {
+            appendLog('Checking network connectivity...');
+            ipcRenderer.send('check:network');
+            networkStatus.textContent = 'Checking network...';
+            networkStatus.className = 'network-status';
+        });
+
+        document.getElementById('saveSystemLogs').addEventListener('click', () => {
+            appendLog('Saving system logs...');
+            ipcRenderer.send('save:systemLogs', log.textContent);
+        });
+
+        // IPC handlers
+        // Update the server:started handler
+        ipcRenderer.on('server:started', () => {
+            serverStatus.textContent = 'Server is running';
+            serverStatus.style.color = '#4CAF50';
+            appendLog('Server started successfully');
+            // Enable stop, restart, and browser buttons, disable start button
+            startServerBtn.disabled = true;
+            stopServerBtn.disabled = false;
+            restartServerBtn.disabled = false;
+            openBrowserBtn.disabled = false;
+            serverRunning = true;
+        });
+
+        // Update the server:stopped handler
+        ipcRenderer.on('server:stopped', () => {
+            serverStatus.textContent = 'Server is stopped';
+            serverStatus.style.color = '#f44336';
+            appendLog('Server stopped');
+            // Enable start button, disable others
+            startServerBtn.disabled = false;
+            stopServerBtn.disabled = true;
+            restartServerBtn.disabled = true;
+            openBrowserBtn.disabled = true;
+            serverRunning = false;
+        });
+
+        ipcRenderer.on('server:log', (event, message) => {
+            appendLog(message);
+        });
+
+        ipcRenderer.on('network:status', (event, { connected, latency }) => {
+            if (connected) {
+                networkStatus.textContent = `Connected to Internet (${latency}ms)`;
+                networkStatus.className = 'network-status network-connected';
+                appendLog(`Network connection successful (${latency}ms)`);
+            } else {
+                networkStatus.textContent = 'No Internet Connection';
+                networkStatus.className = 'network-status network-disconnected';
+                appendLog('Network connection failed');
+            }
+        });
+
+        ipcRenderer.on('update:status', (event, message) => {
+            updateStatus.textContent = message;
+            appendLog(message);
+        });
+
+        // Initial log and checks
+        appendLog('Application started');
+        
+        // Check for updates on startup
+        setTimeout(() => {
+            appendLog('Performing initial update check...');
+            ipcRenderer.send('check:update');
+        }, 2000);
+
+        // Automatic network check on startup
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                ipcRenderer.send('check:network');
+            }, 1000);
+        });
+
+        // Add these after the existing script content
+        const modals = {
+            instructions: document.getElementById('instructionsModal'),
+            about: document.getElementById('aboutModal'),
+            developers: document.getElementById('developersModal')
+        };
+
+        // IPC handlers for showing modals
+        ipcRenderer.on('show:instructions', () => {
+            appendLog('Opening Instructions...');
+            modals.instructions.style.display = 'block';
+        });
+
+        ipcRenderer.on('show:about', () => {
+            appendLog('Opening About...');
+            modals.about.style.display = 'block';
+        });
+
+        ipcRenderer.on('show:developers', () => {
+            appendLog('Opening Developers...');
+            modals.developers.style.display = 'block';
+        });
+
+        // Close button handling for all modals
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.onclick = function() {
+                this.closest('.modal').style.display = 'none';
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Add exit confirmation handler
+        ipcRenderer.on('confirm:exit', () => {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="width: 400px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Confirm Exit</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p>The server is still running. Are you sure you want to exit?</p>
+                        <p>This will stop the server and close all connections.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="secondary-btn" onclick="this.closest('.modal').remove()">Cancel</button>
+                        <button class="primary-btn" onclick="ipcRenderer.send('app:quit')" style="background-color: #f44336;">Exit</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        });
+
+        // Report Problem functionality
+        const reportModal = document.getElementById('reportModal');
+        const reportBtn = document.getElementById('reportProblem');
+        const reportForm = document.getElementById('reportForm');
+        const imageAttachment = document.getElementById('imageAttachment');
+        const imagePreview = document.getElementById('imagePreview');
+
+        reportBtn.addEventListener('click', () => {
+            appendLog('Opening Report Problem form...');
+            reportModal.style.display = 'block';
+        });
+
+        imageAttachment.addEventListener('change', (e) => {
+            imagePreview.innerHTML = '';
+            imagePreview.style.display = 'block';
+            
+            [...e.target.files].forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '200px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Add handlers for report submission response
+        ipcRenderer.on('report:sent', (event, message) => {
+            appendLog('Problem report sent successfully');
+            const submitBtn = reportForm.querySelector('.submit-report');
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+            setTimeout(() => {
+                reportModal.style.display = 'none';
+                reportForm.reset();
+                imagePreview.style.display = 'none';
+                imagePreview.innerHTML = '';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Report';
+            }, 2000);
+        });
+
+        ipcRenderer.on('report:error', (event, error) => {
+            appendLog(`Error sending report: ${error}`);
+            const submitBtn = reportForm.querySelector('.submit-report');
+            submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to Send';
+            submitBtn.style.backgroundColor = '#f44336';
+            
+            // Show error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.style.color = '#f44336';
+            errorDiv.style.marginTop = '10px';
+            errorDiv.style.fontSize = '14px';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error}`;
+            
+            const existingError = reportForm.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            errorDiv.className = 'error-message';
+            reportForm.appendChild(errorDiv);
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Report';
+                submitBtn.style.backgroundColor = '#E91E63';
+            }, 3000);
+        });
+
+        // Add update modal handling
+        const updateModal = document.getElementById('updateModal');
+        const updateTitle = document.getElementById('updateTitle');
+        const updateDescription = document.getElementById('updateDescription');
+        const releaseDate = document.getElementById('releaseDate');
+        const updateVersion = document.getElementById('updateVersion');
+        const releaseNotes = document.getElementById('releaseNotes').querySelector('pre');
+        const updateProgress = document.getElementById('updateProgress');
+        const progressBar = document.querySelector('.progress-bar');
+        const progressText = document.getElementById('progressText');
+        const updateError = document.getElementById('updateError');
+        const postponeUpdate = document.getElementById('postponeUpdate');
+        const downloadUpdate = document.getElementById('downloadUpdate');
+
+        // Handle update available
+        ipcRenderer.on('update:available', (event, updateInfo) => {
+            updateTitle.textContent = updateInfo.releaseName;
+            updateDescription.textContent = 'A new version of J5 Pharmacy Management System is available.';
+            releaseDate.textContent = updateInfo.releaseDate;
+            updateVersion.textContent = `v${updateInfo.latestVersion}`;
+            releaseNotes.textContent = updateInfo.releaseNotes;
+            updateModal.style.display = 'block';
+            updateProgress.style.display = 'none';
+            updateError.style.display = 'none';
+
+            // Check if download URL is available
+            if (!updateInfo.downloadUrl) {
+                updateError.textContent = 'Update package is not available yet. Please try again later.';
+                updateError.style.display = 'block';
+                downloadUpdate.disabled = true;
+            } else {
+                downloadUpdate.disabled = false;
+            }
+        });
+
+        // Handle critical updates
+        ipcRenderer.on('update:critical', (event, updateInfo) => {
+            updateTitle.textContent = 'Critical Update Required';
+            updateDescription.textContent = updateInfo.reason;
+            releaseDate.textContent = updateInfo.releaseDate;
+            updateVersion.textContent = `v${updateInfo.latestVersion}`;
+            releaseNotes.textContent = updateInfo.releaseNotes;
+            updateModal.style.display = 'block';
+            postponeUpdate.style.display = 'none';
+            updateProgress.style.display = 'none';
+            updateError.style.display = 'none';
+        });
+
+        // Handle download progress
+        ipcRenderer.on('update:download-progress', (event, progress) => {
+            updateProgress.style.display = 'block';
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `Downloading: ${Math.round(progress)}%`;
+            downloadUpdate.disabled = true;
+            postponeUpdate.disabled = true;
+        });
+
+        // Handle download error
+        ipcRenderer.on('update:download-error', (event, error) => {
+            updateError.textContent = `Download failed: ${error}`;
+            updateError.style.display = 'block';
+            updateProgress.style.display = 'none';
+            downloadUpdate.disabled = false;
+            postponeUpdate.disabled = false;
+        });
+
+        // Handle install error
+        ipcRenderer.on('update:install-error', (event, error) => {
+            updateError.textContent = `Installation failed: ${error}`;
+            updateError.style.display = 'block';
+            updateProgress.style.display = 'none';
+            downloadUpdate.disabled = false;
+            postponeUpdate.disabled = false;
+        });
+
+        // Handle download button click
+        downloadUpdate.addEventListener('click', () => {
+            ipcRenderer.send('update:download');
+            downloadUpdate.disabled = true;
+            postponeUpdate.disabled = true;
+        });
+
+        // Handle postpone button click
+        postponeUpdate.addEventListener('click', () => {
+            ipcRenderer.send('update:postpone');
+            updateModal.style.display = 'none';
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        let currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        themeToggle.querySelector('input').checked = theme === 'dark'; // Ensure checkbox reflects the theme
+        }
+
+        setTheme(currentTheme);
+
+        themeToggle.querySelector('input').addEventListener('change', (event) => {
+        currentTheme = event.target.checked ? 'dark' : 'light';
+            setTheme(currentTheme);
+        });
+
+        // Date and time functionality
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // Update About version
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get version from package.json
+            fetch('../package.json')
+                .then(response => response.json())
+                .then(data => {
+                    const versionElement = document.getElementById('app-version');
+                    if (versionElement) {
+                        versionElement.textContent = data.version;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading version:', error);
+                    const versionElement = document.getElementById('app-version');
+                    if (versionElement) {
+                        versionElement.textContent = 'Version information unavailable';
+                    }
+                });
+        });
+
+        // Alternative method using electron remote
+        // This is more reliable as it doesn't depend on file access
+            const { app } = require('@electron/remote');
+        const appVersion = app.getVersion();
+        const versionElement = document.getElementById('app-version');
+        if (versionElement) {
+            versionElement.textContent = appVersion;
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+            // Remove active class from all buttons and contents
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        document.getElementsByName('logOption').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const logFileUpload = document.getElementById('logFileUpload');
+        const isUpload = e.target.value === 'upload';
+        logFileUpload.style.display = isUpload ? 'block' : 'none';
+        
+        // Clear file input when switching to current logs
+        if (!isUpload) {
+            document.getElementById('logFile').value = '';
+            document.getElementById('logFilePreview').innerHTML = '';
+        }
+    });
+});
+
+        // Handle log file selection
+        document.getElementById('logFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('logFilePreview');
+            
+            if (file) {
+                // Show file info
+                preview.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fas fa-file-alt"></i> ${file.name}</span>
+                        <span>${(file.size / 1024).toFixed(2)} KB</span>
+                    </div>
+                `;
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+
+        // Update form submission to handle log options
+        reportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            appendLog('Submitting problem report...');
+
+            const submitBtn = reportForm.querySelector('.submit-report');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                // Process images
+                const imagePromises = [...imageAttachment.files].map(file => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            resolve({
+                                name: file.name,
+                                data: e.target.result
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+
+                const processedImages = await Promise.all(imagePromises);
+
+                // Handle logs based on selected option
+                let systemLogs;
+                const logOption = document.querySelector('input[name="logOption"]:checked').value;
+                
+                if (logOption === 'current') {
+                    systemLogs = log.textContent;
+                } else {
+                    const logFile = document.getElementById('logFile').files[0];
+                    if (logFile) {
+                        const logContent = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => resolve(e.target.result);
+                            reader.readAsText(logFile);
+                        });
+                        systemLogs = logContent;
+                    }
+                }
+
+                const formData = {
+                    category: document.getElementById('problemCategory').value,
+                    title: document.getElementById('problemTitle').value,
+                    description: document.getElementById('problemDescription').value,
+                    systemLogs,
+                    images: processedImages,
+                    logSource: logOption
+                };
+
+                ipcRenderer.send('submit:report', formData);
+            } catch (error) {
+                appendLog(`Error processing form data: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Report';
+            }
+        });
+
+        // Settings handling
+        const settingsModal = document.getElementById('settingsModal');
+        const minimizeToTrayCheckbox = document.getElementById('minimizeToTray');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+
+        ipcRenderer.on('show:settings', () => {
+            settingsModal.style.display = 'block';
+        });
+
+        saveSettingsBtn.addEventListener('click', () => {
+            const settings = {
+                minimizeToTray: minimizeToTrayCheckbox.checked,
+                minimizeToTrayOnOpenBrowser: document.getElementById('minimizeToTrayOnOpenBrowser').checked
+            };
+            ipcRenderer.send('settings:save', settings);
+            settingsModal.style.display = 'none';
+            appendLog('Settings saved');
+        });
+
+        // Add CSS for settings
+        const style = document.createElement('style');
+        style.textContent = `
+            .settings-group {
+                margin-bottom: 20px;
+                padding: 15px;
+                background: var(--card-bg);
+                border-radius: 8px;
+            }
+
+            .settings-label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: bold;
+                color: var(--text-color);
+            }
+
+            .settings-description {
+                margin-top: 5px;
+                color: var(--text-color);
+                opacity: 0.8;
+                font-size: 14px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html> 

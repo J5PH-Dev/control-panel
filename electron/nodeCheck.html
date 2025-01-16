@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Node.js Check</title>
+    <style>
+        /* Use same styles as controlPanel.html */
+        .check-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .status-message {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="check-container">
+        <h2>System Requirements Check</h2>
+        <div id="statusMessage" class="status-message"></div>
+        <div id="actionButtons">
+            <button id="checkAgain" style="display: none;">Check Again</button>
+            <button id="downloadNode" style="display: none;">Download Node.js</button>
+            <button id="openNodeWebsite" style="display: none;">Download from Website</button>
+            <button id="proceed" style="display: none;">Proceed with Installation</button>
+        </div>
+        <div id="troubleshoot" style="display: none;">
+            <h3>Troubleshooting Steps:</h3>
+            <ol>
+                <li>Make sure Node.js installer completed successfully</li>
+                <li>Try restarting your computer</li>
+                <li>Check if Node.js is added to your system PATH</li>
+                <li>If problems persist, download Node.js manually from nodejs.org</li>
+            </ol>
+        </div>
+    </div>
+    <script>
+        const { ipcRenderer, shell } = require('electron');
+        
+        const statusMessage = document.getElementById('statusMessage');
+        const checkAgain = document.getElementById('checkAgain');
+        const downloadNode = document.getElementById('downloadNode');
+        const openNodeWebsite = document.getElementById('openNodeWebsite');
+        const proceed = document.getElementById('proceed');
+        const troubleshoot = document.getElementById('troubleshoot');
+
+        // Handle Node.js check result
+        ipcRenderer.on('node-check-result', (event, result) => {
+            if (result.installed) {
+                statusMessage.className = 'status-message success';
+                statusMessage.textContent = `Node.js ${result.version} is installed!`;
+                proceed.style.display = 'block';
+                checkAgain.style.display = 'none';
+                downloadNode.style.display = 'none';
+                openNodeWebsite.style.display = 'none';
+                troubleshoot.style.display = 'none';
+            } else {
+                statusMessage.className = 'status-message error';
+                statusMessage.textContent = 'Node.js is not installed';
+                proceed.style.display = 'none';
+                checkAgain.style.display = 'block';
+                downloadNode.style.display = 'block';
+                openNodeWebsite.style.display = 'block';
+                troubleshoot.style.display = 'block';
+            }
+        });
+
+        // Button handlers
+        checkAgain.addEventListener('click', () => {
+            ipcRenderer.send('check-node');
+        });
+
+        downloadNode.addEventListener('click', () => {
+            ipcRenderer.send('download-node');
+            statusMessage.textContent = 'Downloading Node.js installer...';
+        });
+
+        openNodeWebsite.addEventListener('click', () => {
+            shell.openExternal('https://nodejs.org/');
+        });
+
+        proceed.addEventListener('click', () => {
+            ipcRenderer.send('proceed-installation');
+        });
+
+        // Handle download status
+        ipcRenderer.on('download-complete', (event, installerPath) => {
+            statusMessage.textContent = 'Download complete. Running installer...';
+            ipcRenderer.send('run-installer', installerPath);
+        });
+
+        // Initial check
+        ipcRenderer.send('check-node');
+    </script>
+</body>
+</html> 
