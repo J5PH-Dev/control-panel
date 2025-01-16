@@ -1,0 +1,69 @@
+{
+  "name": "j5pharmacy-control-panel",
+  "version": "2.0.0",
+  "description": "Electron Control Panel for J5 Pharmacy",
+  "author": "Zen Garden",
+  "main": "./electron/main.js",
+  "scripts": {
+    "start": "electron ./electron/main.js",
+    "cli": "node ./electron/cli.js",
+    "build": "electron-builder build --win --config.win.signAndEditExecutable=false",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.j5pharmacy.pms",
+    "productName": "J5 Pharmacy PMS Control Panel",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      ".env",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "./electron/icons/icon.ico",
+      "artifactName": "J5PMS-setup.exe",
+      "requestedExecutionLevel": "requireAdministrator",
+      "executableName": "J5 Pharmacy PMS Control Panel"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "J5 Pharmacy PMS Control Panel",
+      "include": "electron/installer.nsh",
+      "installerIcon": "./electron/icons/icon.ico",
+      "uninstallerIcon": "./electron/icons/icon.ico",
+      "installerHeaderIcon": "./electron/icons/icon.ico",
+      "menuCategory": "J5 Pharmacy",
+      "perMachine": true,
+      "deleteAppDataOnUninstall": true,
+      "guid": "j5pharmacy-control-panel"
+    },
+    "asar": false
+  },
+  "dependencies": {
+    "@electron/remote": "^2.0.12",
+    "bcryptjs": "^2.4.3",
+    "commander": "^11.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "nodemailer": "^6.9.16",
+    "ping": "^0.4.4"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  }
+}

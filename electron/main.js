@@ -21,7 +21,7 @@ let serverRunning = false;
 let updateCheckInterval;
 let pendingUpdate = null;
 let updatePostponeCount = 0;
-const MAX_POSTPONE_COUNT = 3; // Maximum times a user can postpone an update
+const MAX_POSTPONE_COUNT = 5; // Maximum times a user can postpone an update
 let nodeCheckWindow;
 let splashScreen;
 let tray = null;
@@ -95,9 +95,9 @@ function checkForUpdates() {
     
     const options = {
       hostname: 'api.github.com',
-      path: '/repos/J5PH-Dev/J5Pharmacy-Backend/releases/latest',
+      path: '/repos/J5PH-Dev/control-panel/releases/latest',
       headers: {
-        'User-Agent': 'J5PH-Dev/J5Pharmacy-Backend',
+        'User-Agent': 'J5PH-Dev/control-panel',
         'Accept': 'application/vnd.github.v3+json'
       }
     };
@@ -1087,7 +1087,7 @@ async function downloadUpdate(downloadUrl) {
     // Direct download from the browser_download_url
     const request = https.get(downloadUrl, {
       headers: {
-        'User-Agent': 'J5PH-Dev/J5Pharmacy-Backend',
+        'User-Agent': 'J5PH-Dev/control-panel',
         'Accept': '*/*'  // Accept any content type
       }
     }, (response) => {
@@ -1099,7 +1099,7 @@ async function downloadUpdate(downloadUrl) {
         // Follow redirect
         https.get(redirectUrl, {
           headers: {
-            'User-Agent': 'J5PH-Dev/J5Pharmacy-Backend',
+            'User-Agent': 'J5PH-Dev/control-panel',
             'Accept': '*/*'
           }
         }, (redirectResponse) => {
